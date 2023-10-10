@@ -14,9 +14,13 @@ limitations under the License.
 package windowsupdate
 
 import (
+	"sync"
+
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 )
+
+var wuaSession sync.Mutex
 
 // IUpdateSession represents a session in which the caller can perform operations that involve updates.
 // For example, this interface represents sessions in which the caller performs a search, download, installation, or uninstallation operation.
@@ -57,6 +61,7 @@ func toIUpdateSession(updateSessionDisp *ole.IDispatch) (*IUpdateSession, error)
 
 // NewUpdateSession creates a new IUpdateSession interface.
 func NewUpdateSession() (*IUpdateSession, error) {
+	wuaSession.Lock()
 	unknown, err := oleutil.CreateObject("Microsoft.Update.Session")
 	if err != nil {
 		return nil, err
@@ -97,4 +102,9 @@ func (iUpdateSession *IUpdateSession) CreateUpdateSearcher() (*IUpdateSearcher, 
 	}
 
 	return toIUpdateSearcher(updateSearcherDisp)
+}
+
+func (iUpdateSession *IUpdateSession) Close() int32 {
+	wuaSession.Unlock()
+	return iUpdateSession.disp.Release()
 }
