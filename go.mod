@@ -1,4 +1,4 @@
-module github.com/simonfuhrer/windowsupdate
+module github.com/ceshihao/windowsupdate
 
 go 1.15
 
